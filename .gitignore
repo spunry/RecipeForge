@@ -11,6 +11,8 @@ dist
 
 # Env files
 .env
+.env.*
+.env.*.local
 .env.local
 
 # Logs
