@@ -104,7 +104,7 @@ pnpm prisma migrate dev
 
 ## Start Backend
 ```Bash
-pnpm run start:dev
+pnpm dev
 ```
 API runs at:
 ```Code
@@ -143,13 +143,20 @@ http://localhost:3000/recipes
 ---
 
 ## Development Workflow
-### Run everything 
-Terminal 1:
+
+### Start both Frontend and Backend
+From the root directory:
+```Bash
+pnpm dev
+```
+
+### Start individually (Alternative)
+Terminal 1 (Backend):
 ```Bash
 cd apps/api
-pnpm run start:dev
+pnpm dev
 ```
-Terminal 2:
+Terminal 2 (Frontend):
 ```Bash 
 cd apps/web
 pnpm dev
