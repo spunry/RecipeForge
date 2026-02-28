@@ -23,3 +23,6 @@ prisma/dev.db
 
 # OS
 .DS_Store
+
+# Not needed docs
+docs
