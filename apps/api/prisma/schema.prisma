@@ -13,12 +13,25 @@ model Recipe {
   servings    Int?
   prepMinutes Int?
   cookMinutes Int?
+  imageUrl    String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   ingredients RecipeIngredient[]
+  steps       RecipeStep[]
   tags        RecipeTag[]
   images      RecipeImage[]
+}
+
+model RecipeStep {
+  id          String   @id @default(cuid())
+  recipeId    String
+  instruction String
+  order       Int
+
+  recipe      Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@index([recipeId])
 }
 
 model Ingredient {
