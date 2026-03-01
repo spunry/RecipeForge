@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 
@@ -19,14 +19,32 @@ export default function NewRecipePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    title: string;
+    description: string;
+    category: string;
+    servings: number | undefined;
+    prepMinutes: number | undefined;
+    cookMinutes: number | undefined;
+    imageUrl: string;
+  }>({
     title: "",
     description: "",
+    category: "",
     servings: 1,
     prepMinutes: 0,
     cookMinutes: 0,
     imageUrl: "",
   });
+
+  const [existingCategories, setExistingCategories] = useState<string[]>([]);
+  const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
+
+  useEffect(() => {
+    api<string[]>("/recipes/meta/categories")
+      .then(setExistingCategories)
+      .catch(console.error);
+  }, []);
 
   const [ingredients, setIngredients] = useState<IngredientInput[]>([
     { name: "", quantity: "", unit: "" },
@@ -40,7 +58,7 @@ export default function NewRecipePage() {
     const { name, value, type } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "number" ? parseInt(value) || 0 : value,
+      [name]: type === "number" ? (value === "" ? undefined : parseInt(value)) : value,
     }));
   };
 
@@ -128,6 +146,51 @@ export default function NewRecipePage() {
           </div>
 
           <div className="space-y-2">
+            <label htmlFor="category" className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+              Category
+            </label>
+            <div className="space-y-3">
+              <select
+                id="category-select"
+                className="w-full px-4 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all"
+                value={showNewCategoryInput ? "other" : formData.category}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === "other") {
+                    setShowNewCategoryInput(true);
+                    setFormData(prev => ({ ...prev, category: "" }));
+                  } else {
+                    setShowNewCategoryInput(false);
+                    setFormData(prev => ({ ...prev, category: val }));
+                  }
+                }}
+              >
+                <option value="">Select a category</option>
+                {existingCategories.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+                <option value="other">+ Add New Category (Other)</option>
+              </select>
+
+              {showNewCategoryInput && (
+                <input
+                  type="text"
+                  id="category"
+                  name="category"
+                  required
+                  autoFocus
+                  value={formData.category}
+                  onChange={handleChange}
+                  placeholder="Type new category name..."
+                  className="w-full px-4 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all animate-in slide-in-from-top-1 duration-200"
+                />
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-2">
             <label htmlFor="description" className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
               Description
             </label>
@@ -167,7 +230,7 @@ export default function NewRecipePage() {
                 id="servings"
                 name="servings"
                 min="1"
-                value={formData.servings}
+                value={formData.servings ?? ""}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all"
               />
@@ -182,7 +245,7 @@ export default function NewRecipePage() {
                 id="prepMinutes"
                 name="prepMinutes"
                 min="0"
-                value={formData.prepMinutes}
+                value={formData.prepMinutes ?? ""}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all"
               />
@@ -197,7 +260,7 @@ export default function NewRecipePage() {
                 id="cookMinutes"
                 name="cookMinutes"
                 min="0"
-                value={formData.cookMinutes}
+                value={formData.cookMinutes ?? ""}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all"
               />

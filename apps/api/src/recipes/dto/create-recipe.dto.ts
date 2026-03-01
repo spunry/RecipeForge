@@ -39,6 +39,10 @@ export class CreateRecipeDto {
   description?: string;
 
   @IsOptional()
+  @IsString()
+  category?: string;
+
+  @IsOptional()
   @IsInt()
   @Min(1)
   servings?: number;

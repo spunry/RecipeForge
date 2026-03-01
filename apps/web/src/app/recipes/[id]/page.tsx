@@ -3,6 +3,7 @@
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
+import { formatMinutes } from "@/lib/format";
 import type { Recipe } from "@/types/recipe";
 import Link from "next/link";
 
@@ -63,6 +64,11 @@ export default function RecipeDetailPage({
           >
             ← Back to Recipes
           </Link>
+          {recipe.category && (
+            <span className="text-xs font-bold uppercase tracking-[0.2em] text-orange-500 block pt-4">
+              {recipe.category}
+            </span>
+          )}
           <h1 className="text-4xl font-extrabold tracking-tight">
             {recipe.title}
           </h1>
@@ -134,7 +140,7 @@ export default function RecipeDetailPage({
             Prep Time
           </p>
           <p className="text-xl font-semibold">
-            {recipe.prepMinutes ? `${recipe.prepMinutes}m` : "--"}
+            {formatMinutes(recipe.prepMinutes)}
           </p>
         </div>
         <div className="text-center space-y-1">
@@ -142,7 +148,7 @@ export default function RecipeDetailPage({
             Cook Time
           </p>
           <p className="text-xl font-semibold">
-            {recipe.cookMinutes ? `${recipe.cookMinutes}m` : "--"}
+            {formatMinutes(recipe.cookMinutes)}
           </p>
         </div>
       </div>
@@ -173,15 +179,6 @@ export default function RecipeDetailPage({
         </div>
 
         <div className="md:col-span-2 space-y-8">
-          {recipe.description && (
-            <div className="space-y-3">
-              <h2 className="text-xl font-bold">About this recipe</h2>
-              <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed whitespace-pre-wrap">
-                {recipe.description}
-              </p>
-            </div>
-          )}
-
           <div className="space-y-6">
             <h2 className="text-xl font-bold flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
@@ -204,6 +201,15 @@ export default function RecipeDetailPage({
               <p className="text-sm text-zinc-400 italic">No instructions provided.</p>
             )}
           </div>
+
+          {recipe.description && (
+            <div className="space-y-3">
+              <h2 className="text-xl font-bold">About this recipe</h2>
+              <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed whitespace-pre-wrap">
+                {recipe.description}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

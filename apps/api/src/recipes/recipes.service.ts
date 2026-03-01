@@ -7,6 +7,20 @@ import { UpdateRecipeDto } from "./dto/update-recipe.dto";
 export class RecipesService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async findAllCategories() {
+    const categories = await this.prisma.recipe.findMany({
+      select: { category: true },
+      where: {
+        AND: [
+          { category: { not: null } },
+          { category: { not: "" } },
+        ],
+      },
+      distinct: ["category"],
+    });
+    return categories.map((c) => c.category as string).sort();
+  }
+
   async create(dto: CreateRecipeDto) {
     const { ingredients, steps, ...recipeData } = dto;
 
@@ -53,6 +67,7 @@ export class RecipesService {
             OR: [
               { title: { contains: search, mode: "insensitive" } },
               { description: { contains: search, mode: "insensitive" } },
+              { category: { contains: search, mode: "insensitive" } },
             ],
           }
         : {},

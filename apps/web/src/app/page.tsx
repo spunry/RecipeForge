@@ -30,12 +30,6 @@ export default function Home() {
         >
           View Recipes
         </Link>
-        <Link
-          href="/recipes"
-          className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-8 py-3 rounded-lg font-semibold hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all shadow-sm"
-        >
-          Explore More
-        </Link>
       </div>
 
       <div className="w-full max-w-7xl">

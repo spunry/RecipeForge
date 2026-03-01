@@ -10,6 +10,7 @@ model Recipe {
   id          String   @id @default(cuid())
   title       String
   description String?
+  category    String?
   servings    Int?
   prepMinutes Int?
   cookMinutes Int?

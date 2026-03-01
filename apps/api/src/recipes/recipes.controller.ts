@@ -7,6 +7,11 @@ import { RecipesService } from "./recipes.service";
 export class RecipesController {
   constructor(private readonly recipes: RecipesService) {}
 
+  @Get("meta/categories")
+  getCategories() {
+    return this.recipes.findAllCategories();
+  }
+
   @Post()
   create(@Body() dto: CreateRecipeDto) {
     return this.recipes.create(dto);

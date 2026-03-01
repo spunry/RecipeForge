@@ -20,6 +20,7 @@ export interface Recipe {
   id: string;
   title: string;
   description?: string;
+  category?: string;
   servings?: number;
   prepMinutes?: number;
   cookMinutes?: number;
