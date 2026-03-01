@@ -71,11 +71,6 @@ docker ps
 - Postgress → ```localhost:5432```
 - MinIO API → ```localhost:9000```
 - MinIO Console → ```http://localhost:9001```
-Login to MinIO console:
-```Code
-username: minioadmin
-password: minioadmin123
-```
 
 ---
 
