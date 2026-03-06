@@ -68,6 +68,15 @@ export class RecipesService {
               { title: { contains: search, mode: "insensitive" } },
               { description: { contains: search, mode: "insensitive" } },
               { category: { contains: search, mode: "insensitive" } },
+              {
+                ingredients: {
+                  some: {
+                    ingredient: {
+                      name: { contains: search, mode: "insensitive" },
+                    },
+                  },
+                },
+              },
             ],
           }
         : {},

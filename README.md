@@ -68,23 +68,22 @@ Verify container:
 docker ps
 ```
 ### Services
-- Postgress → ```localhost:5432```
+- Postgres → ```localhost:5432```
 - MinIO API → ```localhost:9000```
 - MinIO Console → ```http://localhost:9001```
 
 ---
 
 ## Setup Backend Environment
-inside ``` assp/api/.env ```
+inside ``` apps/api/.env ```
 ```Code
-PORT=8000
-DATABASE_URL=postgresql://recipeforge:recipeforge@localhost:5432/recipeforge?schema=public
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/recipeforge
+PORT=3001
 S3_ENDPOINT=http://localhost:9000
 S3_ACCESS_KEY=minioadmin
-S3_SECRET_KEY=minioadmin123
-S3_BUCKET=recipe-images
+S3_SECRET_KEY=minioadmin
+S3_BUCKET=recipeforge
 S3_REGION=us-east-1
-S3_FORCE_PATH_STYLE=true
 ```
 
 ---
@@ -115,7 +114,7 @@ http://localhost:8000/health
 ## Setup Frontend Environment
 Inside ``` apps/web/.env.local ```:
 ```Code
-NEXT_PUBLIC_API-URL=http://localhost:8000
+NEXT_PUBLIC_API_URL=http://localhost:3001
 ```
 
 ---

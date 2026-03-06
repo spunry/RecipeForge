@@ -1,15 +1,19 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { formatMinutes } from "@/lib/format";
 import type { Recipe } from "@/types/recipe";
 import Link from "next/link";
 
-export default function RecipesPage() {
+function RecipesList() {
+  const searchParams = useSearchParams();
+  const initialSearch = searchParams.get("search") || "";
+  
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialSearch);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
@@ -22,17 +26,10 @@ export default function RecipesPage() {
   }, []);
 
   useEffect(() => {
-    let ignore = false;
-    api<Recipe[]>(`/recipes`).then((res) => {
-      if (!ignore) {
-        setRecipes(res);
-        setLoading(false);
-      }
-    });
-    return () => {
-      ignore = true;
-    };
-  }, []);
+    const searchTerm = searchParams.get("search") || "";
+    setSearch(searchTerm);
+    fetchRecipes(searchTerm);
+  }, [searchParams, fetchRecipes]);
 
   const categories = Array.from(
     new Set(
@@ -49,7 +46,22 @@ export default function RecipesPage() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setSelectedCategory(null);
+    const params = new URLSearchParams(searchParams);
+    if (search) {
+      params.set("search", search);
+    } else {
+      params.delete("search");
+    }
+    window.history.pushState(null, "", `?${params.toString()}`);
     fetchRecipes(search);
+  };
+
+  const clearSearch = () => {
+    setSearch("");
+    const params = new URLSearchParams(searchParams);
+    params.delete("search");
+    window.history.pushState(null, "", `?${params.toString()}`);
+    fetchRecipes("");
   };
 
   const handleDelete = async (id: string) => {
@@ -73,14 +85,39 @@ export default function RecipesPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h1 className="text-3xl font-bold tracking-tight">Recipes</h1>
         <div className="flex w-full md:w-auto gap-3 items-center">
-          <form onSubmit={handleSearch} className="relative flex-1 md:w-80 flex gap-2">
-            <input
-              type="text"
-              placeholder="Search recipes..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full px-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
-            />
+          <form onSubmit={handleSearch} className="flex-1 md:w-80 flex gap-2">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                placeholder="Search recipes..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full px-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all pr-10"
+              />
+              {search && (
+                <button
+                  type="button"
+                  onClick={clearSearch}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors"
+                  aria-label="Clear search"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M18 6 6 18" />
+                    <path d="m 6 6 12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
             <button
               type="submit"
               className="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all border border-zinc-200 dark:border-zinc-700"
@@ -279,5 +316,13 @@ export default function RecipesPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function RecipesPage() {
+  return (
+    <Suspense fallback={<div className="py-10 text-center text-zinc-500">Loading...</div>}>
+      <RecipesList />
+    </Suspense>
   );
 }

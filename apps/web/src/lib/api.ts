@@ -1,27 +1,21 @@
-const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(
-  /\/$/,
-  "",
-);
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export async function api<T>(
-  path: string,
-  options?: RequestInit,
-): Promise<T> {
-  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  const url = `${API_URL}${normalizedPath}`;
+if (!API_BASE_URL) {
+  throw new Error("Missing NEXT_PUBLIC_API_URL");
+}
 
-  const res = await fetch(url, {
+export async function api<T>(path: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
     headers: {
       "Content-Type": "application/json",
-      ...(options?.headers || {}),
+      ...(options?.headers ?? {}),
     },
     ...options,
   });
 
   if (!res.ok) {
-    const error = await res.json().catch(() => ({}));
-    throw new Error(error.message || "API error");
+    throw new Error(`API request failed: ${res.status} ${res.statusText}`);
   }
 
-  return res.json();
+  return res.json() as Promise<T>;
 }

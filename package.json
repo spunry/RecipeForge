@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "pnpm --parallel --filter api --filter web run dev",
+    "infra:up": "docker compose -f infra/docker-compose.yml --env-file infra/.env up -d",
+    "infra:down": "docker compose -f infra/docker-compose.yml down",
+    "dev:apps": "pnpm --parallel --filter api --filter web run dev",
+    "dev": "pnpm infra:up && pnpm dev:apps",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
