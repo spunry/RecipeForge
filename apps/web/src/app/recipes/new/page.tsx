@@ -95,9 +95,19 @@ export default function NewRecipePage() {
     setLoading(true);
     setError(null);
 
+    // Clean payload: remove empty strings and use undefined for optional fields
     const payload = {
       ...formData,
-      ingredients: ingredients.filter(ing => ing.name.trim() !== ""),
+      description: formData.description.trim() || undefined,
+      category: formData.category.trim() || undefined,
+      imageUrl: formData.imageUrl.trim() || undefined,
+      ingredients: ingredients
+        .filter(ing => ing.name.trim() !== "")
+        .map(ing => ({
+          ...ing,
+          quantity: ing.quantity.trim() || undefined,
+          unit: ing.unit.trim() || undefined,
+        })),
       steps: steps
         .filter(step => step.instruction.trim() !== "")
         .map((step, index) => ({ instruction: step.instruction, order: index })),
