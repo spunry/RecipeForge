@@ -1,21 +1,12 @@
 # 📘 RecipeForge
-A full-stack digital recipe management system built with a professional monorepo architecture.
+A full-stack digital recipe management system built with a professional monorepo architecture, optimized for home server deployment (like Raspberry Pi).
 
 ## 🚀 Tech Stack
-### Frontend
-- Next.js (App Router)
-- TypeScript
-- Tailwind CSS
-
-### Backend
-- NestJS
-- Prisma ORM (v7)
-- PostgreSQL
-- MinIO (S3-compatible object storage)
-
-### Infrastructure
-- Docker Compose (Containerized Apps & Services)
-- pnpm workspace monorepo
+- **Frontend:** Next.js (App Router), TypeScript, Tailwind CSS
+- **Backend:** NestJS, Prisma ORM (v7)
+- **Database:** PostgreSQL 16
+- **Storage:** MinIO (S3-compatible object storage)
+- **Infrastructure:** Docker Compose with automated Prisma migrations and health checks.
 
 ---
 
@@ -23,8 +14,8 @@ A full-stack digital recipe management system built with a professional monorepo
 ```text
 recipeforge/
 ├── apps/
-│   ├── web/        # Next.js frontend (Dockerized)
-│   └── api/        # NestJS backend (Dockerized)
+│   ├── web/        # Next.js frontend (Port 3000)
+│   └── api/        # NestJS backend (Port 8000)
 ├── infra/
 │   ├── docker-compose.yml # Full stack orchestration
 │   └── .env        # Infrastructure secrets
@@ -34,96 +25,88 @@ recipeforge/
 
 ---
 
-# 🛠 Prerequisites
-You must have installed:
-- Node 22+ (LTS)
-- pnpm
-- Docker & Docker Compose
-- Git
+# 🍓 Raspberry Pi Deployment Guide
 
----
+This guide assumes you are using **Raspberry Pi OS (64-bit)** or any Debian-based ARM64 distribution.
 
-# ⚙️ Setup & Running
+### 1. Prerequisites
+Install Docker and Git on your Pi:
+```bash
+# Update system
+sudo apt update && sudo apt upgrade -y
 
-## 🐳 Option 1: Full Docker Stack (Recommended)
-Run the entire application (DB, MinIO, API, Web) in containers:
+# Install Docker
+curl -sSL https://get.docker.com | sh
+sudo usermod -aG docker $USER
+# Logout and login again for group changes to take effect
 
-1. **Install dependencies (host):**
-   ```bash
-   pnpm install
-   ```
+# Install Git
+sudo apt install git -y
+```
 
-2. **Configure Environment:**
-   Ensure `infra/.env` is populated with infrastructure secrets.
-   The web app will automatically use `http://localhost:3001` for the API.
+### 2. Clone the Repository
+```bash
+git clone https://github.com/your-repo/RecipeForge.git
+cd RecipeForge
+```
 
-3. **Start the stack:**
-   ```bash
-   pnpm compose:up
-   ```
+### 3. Configure Environment Variables
+You need to set up the infrastructure secrets.
 
-4. **Access the apps:**
-   - **Frontend:** [http://localhost:3000](http://localhost:3000)
-   - **Backend API:** [http://localhost:3001](http://localhost:3001)
-   - **MinIO Console:** [http://localhost:9001](http://localhost:9001)
-
----
-
-## 💻 Option 2: Local Development Mode
-Run infrastructure in Docker, and applications on your host machine:
-
-1. **Start Infrastructure Only:**
-   ```bash
-   pnpm infra:up
-   ```
-
-2. **Initialize Database:**
-   ```bash
-   # From root
-   pnpm --filter api run prisma:generate
-   pnpm --filter api run prisma migrate dev
-   ```
-
-3. **Start All Apps (Hot Reloading):**
-   ```bash
-   pnpm dev
-   ```
-   *Note: In local mode, the API will default to port 8000.*
-
----
-
-# 📄 Environment Variables
-
-### Infrastructure (`infra/.env`)
-Used by Docker Compose for DB and MinIO credentials.
+**Create `infra/.env`:**
+```bash
+cp infra/.env.example infra/.env # If example exists, otherwise create it
+```
+Edit `infra/.env` and set your passwords:
 ```ini
 POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
+POSTGRES_PASSWORD=your_secure_password
 POSTGRES_DB=recipeforge
-MINIO_ROOT_USER=minioadmin
-MINIO_ROOT_PASSWORD=minioadmin
+MINIO_ROOT_USER=admin
+MINIO_ROOT_PASSWORD=your_secure_minio_password
 ```
 
-### Backend (`apps/api/.env`)
-```ini
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/recipeforge
-PORT=8000
-S3_ENDPOINT=http://localhost:9000
-S3_ACCESS_KEY=minioadmin
-S3_SECRET_KEY=minioadmin
-S3_BUCKET=recipeforge
-S3_REGION=us-east-1
+### 4. Configure LAN Access (Critical)
+To access the recipe manager from other devices on your WiFi/LAN, you must point the web app to your Raspberry Pi's IP address.
+
+1. **Find your Pi's IP:**
+   ```bash
+   hostname -I
+   # Example output: 192.168.1.15
+   ```
+
+2. **Update `apps/web/.env.local`:**
+   Change `localhost` to your Pi's actual IP:
+   ```ini
+   NEXT_PUBLIC_API_URL=http://192.168.1.15:8000
+   PORT=3000
+   ```
+
+### 5. Deploy the Stack
+Run the full automated stack. This will build the images, run database migrations, and start all services:
+```bash
+# Using the root pnpm script (if pnpm is installed)
+pnpm compose:up
+
+# OR using docker compose directly from the root
+docker compose -f infra/docker-compose.yml --env-file infra/.env up -d --build
 ```
 
-### Frontend (`apps/web/.env.local`)
-**Recommendation:** Use `127.0.0.1` instead of `localhost` to avoid IPv6 resolution issues in some browsers.
-```ini
-# For Docker Stack:
-NEXT_PUBLIC_API_URL=http://127.0.0.1:3001
-
-# For Local Development:
-# NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
+### 6. Verify Deployment
+Check if all containers are healthy:
+```bash
+docker compose -f infra/docker-compose.yml ps
 ```
+Wait until the status shows `(healthy)` for `recipeforge-api` and `recipeforge-db`.
+
+---
+
+# 🎮 Accessing the Application
+Once running, you can access the services from any device on your network:
+
+- **Frontend:** `http://<your-pi-ip>:3000`
+- **Backend API:** `http://<your-pi-ip>:8000`
+- **MinIO Console:** `http://<your-pi-ip>:9001` (Login with `MINIO_ROOT_USER` credentials)
 
 ---
 
@@ -131,6 +114,5 @@ NEXT_PUBLIC_API_URL=http://127.0.0.1:3001
 
 - `pnpm compose:up`: Build and start the full Dockerized stack.
 - `pnpm compose:down`: Stop and remove all containers.
-- `pnpm infra:up`: Start only infrastructure (DB, MinIO).
-- `pnpm dev`: Start all apps in development mode on host.
-- `pnpm test`: Run tests (TBD).
+- `docker compose -f infra/docker-compose.yml logs -f`: View real-time logs for all services.
+- `npx prisma studio --schema=apps/api/prisma/schema.prisma`: Open a GUI to view/edit your database (requires local pnpm/node).
