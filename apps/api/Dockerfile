@@ -1,24 +1,42 @@
-FROM node:22-alpine
+# Base stage for dependencies
+FROM node:22-alpine AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable && corepack prepare pnpm@10.30.2 --activate
-RUN apk add --no-cache libc6-compat openssl curl
+RUN corepack enable
+RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
-# Copy the entire monorepo
+# Dependencies stage
+FROM base AS deps
+COPY pnpm-lock.yaml ./
+COPY package.json ./
+COPY pnpm-workspace.yaml ./
+COPY apps/api/package.json ./apps/api/
+RUN pnpm install --filter api --frozen-lockfile
+
+# Build stage
+FROM base AS builder
+COPY --from=deps /app /app
 COPY . .
-
-# Install all dependencies
-RUN pnpm install --frozen-lockfile
-
-# Generate Prisma and Build API
-ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
 RUN pnpm --filter api run prisma:generate
 RUN pnpm --filter api run build
 
-# Remove development dependencies to save space (optional, but let's keep it simple first)
-# RUN pnpm install --prod --frozen-lockfile --ignore-scripts
+# Production stage
+FROM node:22-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+RUN apk add --no-cache libc6-compat openssl curl
 
-EXPOSE 3000
+# Create a non-root user for security (optional but recommended)
+# RUN addgroup --system --gid 1001 nodejs
+# RUN adduser --system --uid 1001 nestjs
+# USER nestjs
+
+COPY --from=builder /app/apps/api/dist ./apps/api/dist
+COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
+COPY --from=builder /app/apps/api/package.json ./apps/api/package.json
+COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
+
+EXPOSE 8000
 WORKDIR /app/apps/api
-CMD ["node", "dist/src/main"]
+CMD ["node", "dist/main"]

@@ -78,14 +78,14 @@ services:
       context: ..
       dockerfile: apps/web/Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: http://localhost:8000
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     container_name: recipeforge-web
     restart: unless-stopped
     depends_on:
       api:
         condition: service_healthy
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8000
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
       PORT: 3000
     ports:
       - "3000:3000"

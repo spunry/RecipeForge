@@ -51,39 +51,36 @@ cd RecipeForge
 ```
 
 ### 3. Configure Environment Variables
-You need to set up the infrastructure secrets.
+You need to set up the infrastructure secrets and the API URL for LAN access.
 
-**Create `infra/.env`:**
-```bash
-cp infra/.env.example infra/.env # If example exists, otherwise create it
-```
-Edit `infra/.env` and set your passwords:
-```ini
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=your_secure_password
-POSTGRES_DB=recipeforge
-MINIO_ROOT_USER=admin
-MINIO_ROOT_PASSWORD=your_secure_minio_password
-```
-
-### 4. Configure LAN Access (Critical)
-To access the recipe manager from other devices on your WiFi/LAN, you must point the web app to your Raspberry Pi's IP address.
-
-1. **Find your Pi's IP:**
+1. **Find your Pi's LAN IP:**
    ```bash
    hostname -I
    # Example output: 192.168.1.15
    ```
 
-2. **Update `apps/web/.env.local`:**
-   Change `localhost` to your Pi's actual IP:
-   ```ini
-   NEXT_PUBLIC_API_URL=http://192.168.1.15:8000
-   PORT=3000
+2. **Create and Edit `infra/.env`:**
+   ```bash
+   cp infra/.env.example infra/.env
+   nano infra/.env
    ```
 
-### 5. Deploy the Stack
-Run the full automated stack. This will build the images, run database migrations, and start all services:
+3. **Set your secrets and the API URL:**
+   Replace `<YOUR_PI_IP_ADDRESS>` with your actual Pi IP (e.g., `192.168.1.15`).
+   ```ini
+   POSTGRES_USER=recipeuser
+   POSTGRES_PASSWORD=your_secure_password
+   POSTGRES_DB=recipeforge
+
+   MINIO_ROOT_USER=admin
+   MINIO_ROOT_PASSWORD=your_secure_minio_password
+
+   # CRITICAL: Set this to your Pi's LAN IP so other devices can connect
+   NEXT_PUBLIC_API_URL=http://192.168.1.15:8000
+   ```
+
+### 4. Deploy the Stack
+Run the full automated stack. This will build the optimized ARM-compatible images, run database migrations, and start all services:
 ```bash
 # Using the root pnpm script (if pnpm is installed)
 pnpm compose:up
@@ -92,7 +89,7 @@ pnpm compose:up
 docker compose -f infra/docker-compose.yml --env-file infra/.env up -d --build
 ```
 
-### 6. Verify Deployment
+### 5. Verify Deployment
 Check if all containers are healthy:
 ```bash
 docker compose -f infra/docker-compose.yml ps
